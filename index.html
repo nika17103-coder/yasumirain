@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>休みLINE作成ツール</title>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXX"
+crossorigin="anonymous"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #e5ddd5;
+}
+
+.header {
+  background: #06C755;
+  color: white;
+  padding: 15px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 10px;
+}
+
+.controls {
+  background: white;
+  padding: 15px;
+  border-radius: 15px;
+}
+
+select {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.generate {
+  background: #06C755;
+  color: white;
+}
+
+.copy {
+  background: #333;
+  color: white;
+}
+
+.chat {
+  margin-top: 15px;
+}
+
+.message {
+  display: flex;
+  align-items: flex-end;
+  margin-top: 10px;
+}
+
+.left { justify-content: flex-start; }
+.right { justify-content: flex-end; }
+
+.icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 6px;
+}
+
+.bubble {
+  padding: 10px 14px;
+  border-radius: 15px;
+  max-width: 70%;
+  font-size: 14px;
+}
+
+.boss {
+  background: white;
+  color: black;
+}
+
+.me {
+  background: #06C755;
+  color: white;
+}
+
+.meta {
+  font-size: 10px;
+  color: #666;
+  margin: 0 5px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">休みLINE作成</div>
+
+<div class="container">
+
+  <div class="controls">
+    <label>理由</label>
+    <select id="reason">
+      <option value="発熱">発熱</option>
+      <option value="頭痛">頭痛</option>
+      <option value="腹痛">腹痛</option>
+      <option value="家庭の事情">家庭の事情</option>
+      <option value="寝坊">寝坊</option>
+      <option value="二日酔い">二日酔い</option>
+      <option value="電車遅延">電車遅延</option>
+    </select>
+
+    <label>上司タイプ</label>
+    <select id="boss">
+      <option value="優しい">優しい</option>
+      <option value="普通">普通</option>
+      <option value="厳しい">厳しい</option>
+    </select>
+
+    <button class="generate" onclick="generate()">作成する</button>
+    <button class="copy" onclick="copyText()">コピー</button>
+  </div>
+
+  <div class="chat" id="chat"></div>
+
+</div>
+
+<script>
+let lastText = "";
+
+function getTime() {
+  const now = new Date();
+  return now.getHours().toString().padStart(2, '0') + ":" +
+         now.getMinutes().toString().padStart(2, '0');
+}
+
+function generate() {
+  const reason = document.getElementById("reason").value;
+  const boss = document.getElementById("boss").value;
+  const chat = document.getElementById("chat");
+
+  const templates = {
+    優しい: {
+      発熱: [
+        "すみません、発熱があるため本日お休みさせてください。",
+        "体調が優れないため、本日お休みさせてください。"
+      ],
+      頭痛: [
+        "頭痛がひどいため、本日お休みさせてください。",
+        "体調不良のためお休みさせてください。"
+      ],
+      腹痛: [
+        "腹痛のため本日お休みさせてください。"
+      ],
+      家庭の事情: [
+        "家庭の事情で本日お休みさせてください。"
+      ],
+      寝坊: [
+        "すみません、寝坊してしまいました。本日お休みさせてください。"
+      ],
+      二日酔い: [
+        "体調が優れないため本日お休みさせてください。"
+      ],
+      電車遅延: [
+        "電車遅延の影響で出勤が難しいです。"
+      ]
+    },
+
+    普通: {
+      発熱: [
+        "申し訳ありません。本日、発熱のためお休みをいただきます。",
+        "おはようございます。本日、体調不良のためお休みをいただきます。"
+      ],
+      頭痛: [
+        "本日、頭痛のためお休みをいただきます。"
+      ],
+      腹痛: [
+        "体調不良のため本日お休みをいただきます。"
+      ],
+      家庭の事情: [
+        "家庭の事情により本日お休みをいただきます。"
+      ],
+      寝坊: [
+        "申し訳ありません、寝坊してしまい本日の出勤が難しいです。"
+      ],
+      二日酔い: [
+        "体調が優れないため本日お休みをいただきます。"
+      ],
+      電車遅延: [
+        "電車遅延の影響で出勤が遅れております。"
+      ]
+    },
+
+    厳しい: {
+      発熱: [
+        "申し訳ありません。本日、発熱のためお休みをいただきます。",
+        "本日、体調不良のためお休みをいただきます。"
+      ],
+      頭痛: [
+        "申し訳ありません。本日、頭痛のためお休みをいただきます。"
+      ],
+      腹痛: [
+        "本日、体調不良のためお休みをいただきます。"
+      ],
+      家庭の事情: [
+        "申し訳ありません。本日、家庭の事情によりお休みをいただきます。"
+      ],
+      寝坊: [
+        "申し訳ありません、寝坊してしまい出勤が難しいです。"
+      ],
+      二日酔い: [
+        "体調が優れないため本日お休みをいただきます。"
+      ],
+      電車遅延: [
+        "電車遅延の影響で出勤が遅れております。"
+      ]
+    }
+  };
+
+  const replies = {
+    優しい: [
+      "大丈夫？ゆっくり休んでね。",
+      "無理しないでね！",
+      "お大事に！"
+    ],
+    普通: [
+      "了解です。お大事にしてください。",
+      "承知しました。",
+      "しっかり休んでください。"
+    ],
+    厳しい: [
+      "次は早めに連絡してください。",
+      "体調管理も気をつけてください。",
+      "今回は承知しました。"
+    ]
+  };
+
+  const list = templates[boss][reason];
+  const myText = list[Math.floor(Math.random() * list.length)];
+  const reply = replies[boss][Math.floor(Math.random() * replies[boss].length)];
+
+  lastText = myText;
+  const time = getTime();
+
+  chat.innerHTML += `
+    <div class="message right">
+      <div class="meta">${time}</div>
+      <div class="bubble me">${myText}</div>
+      <div class="meta">既読</div>
+    </div>
+  `;
+
+  setTimeout(() => {
+    chat.innerHTML += `
+      <div class="message left">
+        <div class="icon">👤</div>
+        <div>
+          <div class="bubble boss">${reply}</div>
+        </div>
+      </div>
+    `;
+  }, 1000);
+}
+
+function copyText() {
+  navigator.clipboard.writeText(lastText);
+  alert("コピーしました！");
+}
+</script>
+
+</body>
+</html>
+<div style="text-align:center; margin-top:20px; font-size:12px;">
+  <a href="privacy.html">プライバシーポリシー</a>
+</div>
